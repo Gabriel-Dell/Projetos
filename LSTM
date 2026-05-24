@@ -1,0 +1,199 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "import tensorflow as tf\n",
+        "from tensorflow.keras.preprocessing.text import Tokenizer\n",
+        "from tensorflow.keras.preprocessing.sequence import pad_sequences\n",
+        "from tensorflow.keras.models import Sequential\n",
+        "from tensorflow.keras.layers import Embedding, LSTM, Dense\n"
+      ],
+      "metadata": {
+        "id": "DU8pH8P5hu5l"
+      },
+      "execution_count": 1,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "frases = [\n",
+        "    \"eu gosto de programar em python\",\n",
+        "    \"eu gosto de aprender novas linguagens\",\n",
+        "    \"python é uma linguagem poderosa\",\n",
+        "    \"redes neurais são muito interessantes\",\n",
+        "    \"machine learning é o futuro da tecnologia\",\n",
+        "    \"gosto de estudar inteligência artificial\",\n",
+        "    \"adoro resolver problemas com código\",\n",
+        "    \"aprendizado profundo é fascinante\",\n",
+        "    \"python é ótimo para ciência de dados\",\n",
+        "    \"eu estudo redes neurais artificiais\",\n",
+        "    \"inteligência artificial muda o mundo\",\n",
+        "    \"aprendo algo novo em programação todos os dias\",\n",
+        "    \"machine learning ajuda a prever resultados\",\n",
+        "    \"gosto de ensinar programação para iniciantes\",\n",
+        "    \"dados são o combustível da inteligência artificial\",\n",
+        "    \"amo trabalhar com algoritmos e lógica\",\n",
+        "    \"o futuro da tecnologia está na automação\",\n",
+        "    \"aprendizado de máquina melhora com dados\",\n",
+        "    \"python tem muitas bibliotecas poderosas\",\n",
+        "    \"inteligência artificial é uma área em crescimento\",\n",
+        "    \"adoro estudar sobre redes neurais convolucionais\",\n",
+        "    \"aprendo muito praticando projetos em python\",\n",
+        "    \"deep learning é parte importante da inteligência artificial\",\n",
+        "    \"gosto de explorar novos frameworks de machine learning\",\n",
+        "    \"estudar ciência de dados é muito empolgante\"\n",
+        "]"
+      ],
+      "metadata": {
+        "id": "Ys-jNXsuhzWS"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "tokenizer = Tokenizer()\n",
+        "tokenizer.fit_on_texts(frases)\n",
+        "total_palavras = len(tokenizer.word_index) + 1\n",
+        "\n",
+        "sequencias = []\n",
+        "for frase in frases:\n",
+        "    tokens = tokenizer.texts_to_sequences([frase])[0]\n",
+        "    for i in range(1, len(tokens)):\n",
+        "        n_gram = tokens[:i+1]\n",
+        "        sequencias.append(n_gram)\n",
+        "\n",
+        "max_seq_len = max(len(x) for x in sequencias)\n",
+        "sequencias = np.array(pad_sequences(sequencias, maxlen=max_seq_len, padding='pre'))\n",
+        "\n",
+        "X = sequencias[:, :-1]\n",
+        "y = sequencias[:, -1]\n",
+        "y = tf.keras.utils.to_categorical(y, num_classes=total_palavras)\n"
+      ],
+      "metadata": {
+        "id": "AswWq7fmh6Oa"
+      },
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "modelo = Sequential()\n",
+        "modelo.add(Embedding(total_palavras, 64, input_length=max_seq_len - 1))\n",
+        "modelo.add(LSTM(100))\n",
+        "modelo.add(Dense(total_palavras, activation='softmax'))\n",
+        "\n",
+        "modelo.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "DgWx8IBkiEIi",
+        "outputId": "ec87d2c2-734d-49cd-cdbb-64d7670ce086"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.12/dist-packages/keras/src/layers/core/embedding.py:100: UserWarning: Argument `input_length` is deprecated. Just remove it.\n",
+            "  warnings.warn(\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "historico = modelo.fit(X, y, epochs=500, verbose=0)\n",
+        "\n",
+        "print(\"\\nTreinamento concluído!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "3TNkAO0QiHWp",
+        "outputId": "eb002113-54ea-40ef-8c24-540a4c61b1a0"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\n",
+            "Treinamento concluído!\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 8,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "_0Xwt2Rif8_k",
+        "outputId": "f409bf6b-6a50-480c-f467-ec88aa381d59"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Previsão: deep learning é parte importante\n"
+          ]
+        }
+      ],
+      "source": [
+        "def prever_proxima_palavra(modelo, tokenizer, texto_inicial, max_seq_len, temperatura=0.3):\n",
+        "\n",
+        "    for _ in range(3):\n",
+        "        token_list = tokenizer.texts_to_sequences([texto_inicial])[0]\n",
+        "        token_list = pad_sequences([token_list], maxlen=max_seq_len - 1, padding='pre')\n",
+        "        predicoes = modelo.predict(token_list, verbose=0)[0]\n",
+        "        predicoes = np.log(predicoes + 1e-7) / temperatura\n",
+        "        exp_preds = np.exp(predicoes)\n",
+        "        predicoes = exp_preds / np.sum(exp_preds)\n",
+        "        proximo_indice = np.random.choice(len(predicoes), p=predicoes)\n",
+        "        proxima_palavra = \"\"\n",
+        "        for palavra, index in tokenizer.word_index.items():\n",
+        "            if index == proximo_indice:\n",
+        "                proxima_palavra = palavra\n",
+        "                break\n",
+        "        if proxima_palavra:\n",
+        "            texto_inicial += ' ' + proxima_palavra\n",
+        "        else:\n",
+        "            break\n",
+        "    return texto_inicial\n",
+        "\n",
+        "entrada = \"deep learning\"\n",
+        "resultado = prever_proxima_palavra(modelo, tokenizer, entrada, max_seq_len, temperatura=0.3)\n",
+        "print(f\"Previsão: {resultado}\")"
+      ]
+    }
+  ]
+}
